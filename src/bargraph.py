@@ -109,7 +109,7 @@ def make_svg_bargraph(labels, heights, categories,
         barheight=100, barwidth=12, show_labels=True, filename=None):
     unitheight = float(barheight) / max(heights)
     textheight = barheight if show_labels else 0
-    labelsize = float(barwidth)
+    labelsize = int(barwidth)
     gap = float(barwidth) / 4
     textsize = barwidth + gap
     rollup = max(heights)
@@ -129,15 +129,15 @@ def make_svg_bargraph(labels, heights, categories,
     # Add units scale on left
     for h in [1, (max(heights) + 1) // 2, max(heights)]:
         et.SubElement(svg, 'text', x='0', y='0',
-            style=('font-family:sans-serif;font-size:%dpx;text-anchor:end;'+
-            'alignment-baseline:hanging;' +
-            'transform:translate(%dpx, %dpx);') %
-            (textsize, x - gap, basey - h * unitheight)).text = str(h)
+                      transform='translate({:d}, {:d})'.format(int(x - gap), int(basey - h * unitheight)),
+                      style=('font-family:sans-serif;font-size:{:d};text-anchor:end;'\
+                             .format(int(textsize))+
+                             'alignment-baseline:hanging')
+        ).text = str(h)
     et.SubElement(svg, 'text', x='0', y='0',
-            style=('font-family:sans-serif;font-size:%dpx;text-anchor:middle;'+
-            'transform:translate(%dpx, %dpx) rotate(-90deg)') %
-            (textsize, x - gap - 1.2 * textsize, basey - h * unitheight / 2)
-            ).text = 'units'
+                  transform='translate({:d}, {:d}) rotate(-90)'.format( int(x - gap - 1.2 * textsize), int(basey - h * unitheight / 2.0)),
+                  style=('font-family:sans-serif;font-size:{:d};text-anchor:middle'.format(int(textsize)))
+    ).text = 'units'
     # Draw big category background rectangles
     for catindex, (cat, catcount) in enumerate(categories):
         if not catcount:
@@ -162,9 +162,9 @@ def make_svg_bargraph(labels, heights, categories,
         x += barwidth
         if show_labels:
             et.SubElement(svg, 'text', x='0', y='0',
-                style=('font-family:sans-serif;font-size:%dpx;text-anchor:end;'+
-                'transform:translate(%dpx, %dpx) rotate(-45deg);') %
-                (labelsize, x, basey + textmargin)).text = fix(label)
+                          transform="translate({:d}, {:d}) rotate(-45)".format(int(x), int(basey + textmargin)),
+                          style=('font-family:sans-serif;font-size:{:d};text-anchor:end'.format(labelsize))
+            ).text = fix(label)
         x += gap
         catcount -= 1
     # Text lables for each category
@@ -173,11 +173,12 @@ def make_svg_bargraph(labels, heights, categories,
         if not catcount:
             continue
         et.SubElement(svg, 'text', x='0', y='0',
-            style=('font-family:sans-serif;font-size:%dpx;text-anchor:end;'+
-            'transform:translate(%dpx, %dpx) rotate(-90deg);') %
-            (textsize, x + (barwidth + gap) * catcount - gap,
-                basey - rollup * unitheight + gap)).text = '%d %s' % (
-                        catcount, fix(cat + ('s' if catcount != 1 else '')))
+                      transform="translate({:d}, {:d}) rotate(-90)"\
+                      .format(int(x + (barwidth + gap) * catcount - gap),
+                              int(basey - rollup * unitheight + gap)),
+                      style=('font-family:sans-serif;font-size:{:d};text-anchor:end'.format(int(textsize)))
+        ).text = '{:d} {:s}'.format(
+          int(catcount), fix(cat + ('s' if catcount != 1 else '')))
         x += (barwidth + gap) * catcount
     # Output - this is the bare svg.
     result = et.tostring(svg)
